@@ -377,6 +377,7 @@ READ_LOCK_STATUS   = TRUE
   # Standalone MM drivers in non-secure world
   #
   INF ArmPkg/Drivers/MmCommunicationDxe/MmCommunication.inf
+  INF FfaFeaturePkg/Drivers/FfaHarnessDxe/FfaHarnessDxe.inf
 !endif
 
   #

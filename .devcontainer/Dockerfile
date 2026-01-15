@@ -37,7 +37,7 @@ ENV TZ=UTC
 
 # Work-around for azure pipelines adding the vsts_azpcontainer user, but not adding
 # the .local/bin directory to the path which will be used by pip.
-ENV PATH $PATH:/home/vsts_azpcontainer/.local/bin
+ENV PATH=$PATH:/home/vsts_azpcontainer/.local/bin
 
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
@@ -231,3 +231,6 @@ RUN apt-get update && \
         less \
         && \
     apt-get clean
+
+COPY pip-requirements.txt /tmp/pip-requirements.txt
+RUN pip install --upgrade -r /tmp/pip-requirements.txt

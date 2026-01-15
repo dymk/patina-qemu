@@ -1,3 +1,7 @@
 {
-  "rust-analyzer.check.overrideCommand": ["cargo", "make", "check_json"]
+  "rust-analyzer.check.overrideCommand": [
+    "cargo",
+    "make",
+    "check_json"
+  ],
 }

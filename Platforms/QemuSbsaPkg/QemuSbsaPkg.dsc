@@ -1356,6 +1356,9 @@
       gArmTokenSpaceGuid.PcdArmArchTimerFreqInHz|62500000
   }
 
+  # FF-A boot harness DXE driver
+  FfaFeaturePkg/Drivers/FfaHarnessDxe/FfaHarnessDxe.inf
+
   # FF-A test application to test the FF-A interface
   FfaFeaturePkg/Applications/FfaPartitionTest/FfaPartitionTestApp.inf
 

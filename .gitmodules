@@ -37,10 +37,10 @@
 	url = https://github.com/microsoft/mu_feature_debugger.git
 [submodule "Silicon/Arm/HAF"]
 	path = Silicon/Arm/HAF
-	url = https://github.com/TF-Hafnium/hafnium.git
+	url = https://github.com/dymk/hafnium.git
 [submodule "Features/FFA"]
 	path = Features/FFA
-	url = https://github.com/microsoft/mu_feature_ffa.git
+	url = https://github.com/dymk/mu_feature_ffa.git
 [submodule "Common/PATINA_EDK2"]
 	path = Common/PATINA_EDK2
 	url = https://github.com/OpenDevicePartnership/patina-edk2.git
