@@ -46,13 +46,17 @@ stuart-build: build-builder-image build-rust-sp
 # Depends on having `bgrep` available - https://github.com/tmbinc/bgrep (or `brew install bgrep` on macos)
 .PHONY: patch-flash0
 patch-flash0: build-rust-sp
-	@set -e; \
+	@set -ex; \
 	export TMPFILE_NAME=$$(mktemp); \
 	echo "TMPFILE_NAME: $$TMPFILE_NAME"; \
 	cp $(SECURE_FLASH0_FILE) $$TMPFILE_NAME; \
-	export OFFSET=$$(bgrep $$(xxd -p $(RUST_SP_FILE) | head -n 4 | tr -d '\n') $(SECURE_FLASH0_FILE) | cut -d ' ' -f 2); \
+	export OFFSET=$$(bgrep $$(xxd -p $(PWD)/$(RUST_SP_FILE_BASE) | head -n 4 | tr -d '\n') $(SECURE_FLASH0_FILE) | cut -d ' ' -f 2); \
+	if [ -z "$$OFFSET" ] || [ "$$OFFSET" = "0" ] || [ "$$OFFSET" = "00000000" ]; then \
+		echo "ERROR: failed to locate rust secure partition pattern in $(SECURE_FLASH0_FILE) (OFFSET='$$OFFSET')"; \
+		exit 1; \
+	fi; \
 	export OFFSET_DEC=$$(printf '%d' 0x$$OFFSET); \
-	dd if=$(RUST_SP_FILE) of=$$TMPFILE_NAME bs=1 seek=$$OFFSET_DEC conv=notrunc 2>/dev/null; \
+	dd if=$(PWD)/$(RUST_SP_FILE_BASE) of=$$TMPFILE_NAME bs=1 seek=$$OFFSET_DEC conv=notrunc 2>/dev/null; \
 	cp $$TMPFILE_NAME $(SECURE_FLASH0_FILE); \
 	echo Patched $(SECURE_FLASH0_FILE) at offset $$OFFSET_DEC
 
@@ -77,4 +81,5 @@ run-qemu:
 		-smbios type=3,manufacturer=OpenDevicePartnership \
 		-serial stdio \
 		-serial file:secure.log \
-		-serial file:secure_mm.log
+		-serial file:secure_mm.log \
+		| tee console.log || test $$? -eq 1
