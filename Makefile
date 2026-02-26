@@ -62,6 +62,7 @@ run-qemu:
 	qemu-system-aarch64 \
 		-net none \
 		-display none \
+		-semihosting-config enable=on,target=native \
 		-m 2048 \
 		-machine sbsa-ref \
 		-cpu max,sve=off,sme=off \
@@ -72,9 +73,8 @@ run-qemu:
 		-device usb-tablet,id=input0,bus=usb.0,port=1 \
 		-device usb-kbd,id=input1,bus=usb.0,port=2 \
 		-smbios type=0,vendor="Patina",version="patina-sbsa-v0.1.1-2-g8625168c",date=01/13/2026,uefi=on \
-		-smbios type=1,manufacturer=OpenDevicePartnership,product="QEMU SBSA",family=QEMU,version="10.0.0",serial=42-42-42-42 \
-		-smbios type=3,manufacturer=OpenDevicePartnership,serial=42-42-42-42,asset=SBSA,sku=SBSA \
+		-smbios type=1,manufacturer=OpenDevicePartnership \
+		-smbios type=3,manufacturer=OpenDevicePartnership \
 		-serial stdio \
 		-serial file:secure.log \
-		-serial file:secure_mm.log \
-	| tee console.log
+		-serial file:secure_mm.log
