@@ -16,6 +16,7 @@ UefiDbgExt/x64/
 /**/Include/Generated/**
 /**/AutoGen/**
 *.log
+/.envrc
 
 # Ignore Rust build output
 /target

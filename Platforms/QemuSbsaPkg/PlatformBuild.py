@@ -30,6 +30,22 @@ from edk2toollib.utility_functions import GetHostInfo
 
 cached_enivron = os.environ.copy()
 
+
+def WriteFileIfChanged(file_path: Path, content: str) -> bool:
+    """Write file content only when bytes differ from existing content."""
+    existing_content = None
+    if file_path.exists():
+        with open(file_path, "r") as file:
+            existing_content = file.read()
+
+    if existing_content == content:
+        return False
+
+    with open(file_path, "w") as file:
+        file.write(content)
+    return True
+
+
 # Declare test whose failure will not return a non-zero exit code
 FAILURE_EXEMPT_TESTS = {
     # example "PiValueTestApp.efi": datetime.datetime(3141, 5, 9, 2, 6, 53, 589793),
@@ -525,6 +541,11 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
         op_fv = Path(self.env.GetValue("BUILD_OUTPUT_BASE")) / "FV"
 
         # The SP layout structure - this matches what HafTfaBuild generates
+        if os.environ.get("RUST_SP_BINARY_PATH") is not None:
+            mssp_rust_binary_path = os.environ.get("RUST_SP_BINARY_PATH")
+        else:
+            mssp_rust_binary_path = os.path.join(self.env.GetValue("SECURE_PARTITION_BINARIES"), "msft-sp.bin")
+
         data = {
             "stmm": {
                 "image": {
@@ -554,7 +575,7 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
             },
             "mssp-rust": {
                 "image": {
-                    "file": os.path.join(self.env.GetValue("SECURE_PARTITION_BINARIES"), "msft-sp.bin"),
+                    "file": str(mssp_rust_binary_path),
                     "offset": "0x2000"
                 },
                 "pm": {
@@ -734,9 +755,9 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
         # Specify the filename
         filename = Path(self.env.GetValue("BUILD_OUTPUT_BASE")) / "sp_layout.json"
 
-        # Writing JSON data
-        with open(filename, "w") as f:
-            json.dump(self.GetSpLayoutData(), f, indent=4)
+        # Write only when content changes to avoid forcing TF-A rebuilds on mtime churn.
+        sp_layout_json = json.dumps(self.GetSpLayoutData(), indent=4)
+        WriteFileIfChanged(filename, sp_layout_json)
 
         # This is an unorthodox build, as TF-A uses poetry to manage dependencies and build the firmware.
         # First, we need to know what the name of the virtual environment is.

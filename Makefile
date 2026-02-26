@@ -1,17 +1,20 @@
 BUILDER_IMAGE=patina-qemu-builder
-COMMON_BUILDER_FLAGS=\
-	-v $(PWD):/workspace \
-	-v ~/.gitconfig:/root/.gitconfig \
-	-w /workspace
 SECURE_FLASH0_FILE=$(PWD)/Build/QemuSbsaPkg/DEBUG_GCC5/FV/SECURE_FLASH0.fd
 QEMU_EFI_FILE=$(PWD)/Build/QemuSbsaPkg/DEBUG_GCC5/FV/QEMU_EFI.fd
 # Set this environment variable to override the default rust secure partition directory, e.g. to a haf-ec-service directory
 RUST_SP_DIR ?= Features/FFA/FfaFeaturePkg/SecurePartitions/MsSecurePartitionRust
-RUST_SP_FILE=$(PWD)/Platforms/QemuSbsaPkg/Binaries/secure_partition_binaries_extdep/msft-sp.bin
+RUST_SP_FILE_BASE=Build/rust-secure-partition.bin
+COMMON_BUILDER_FLAGS=\
+	-v $(PWD):/workspace \
+	-v ~/.gitconfig:/root/.gitconfig \
+	-v $(PWD)/Build/root-builder-cache:/root/.cache \
+	-e RUST_SP_BINARY_PATH=/workspace/$(RUST_SP_FILE_BASE) \
+	-w /workspace
 
 .PHONY: build-rust-sp
 build-rust-sp:
-	cd $(RUST_SP_DIR) && cargo objcopy --release --target=aarch64-unknown-none -- -O binary $(RUST_SP_FILE)
+	echo "Building rust secure partition from $(RUST_SP_DIR)"
+	cd $(RUST_SP_DIR) && cargo objcopy --release --target=aarch64-unknown-none -- -O binary $(PWD)/$(RUST_SP_FILE_BASE)
 
 .PHONY: build-builder-image
 build-builder-image:
@@ -29,7 +32,11 @@ stuart-update: build-builder-image
 # Generates SECURE_FLASH0_FILE and QEMU_EFI_FILE
 .PHONY: stuart-build
 stuart-build: build-builder-image build-rust-sp
-	docker run $(COMMON_BUILDER_FLAGS) $(BUILDER_IMAGE) stuart_build -c Platforms/QemuSbsaPkg/PlatformBuild.py HAF_TFA_BUILD=TRUE PATCH_TFA=FALSE
+	docker run $(COMMON_BUILDER_FLAGS) $(BUILDER_IMAGE) \
+		stuart_build -c Platforms/QemuSbsaPkg/PlatformBuild.py \
+		HAF_TFA_BUILD=TRUE \
+		PATCH_TFA=FALSE \
+		RUST_SP_BINARY_PATH=$(RUST_SP_FILE_BASE)
 
 # Patch the rust secure partition into the SECURE_FLASH0.fd file, without rebuilding the entire firmware
 # Useful for fast iteration on the rust secure partition code
@@ -51,7 +58,7 @@ patch-flash0: build-rust-sp
 
 .PHONY: run-qemu
 run-qemu:
-	truncate --size=0 console.log
+	truncate -s0 console.log
 	qemu-system-aarch64 \
 		-net none \
 		-display none \

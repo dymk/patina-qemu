@@ -4,4 +4,7 @@
     "make",
     "check_json"
   ],
+  "[python]": {
+    "editor.formatOnSave": false
+  }
 }
