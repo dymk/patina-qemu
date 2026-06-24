@@ -482,7 +482,13 @@
 [LibraryClasses.common.MM_CORE_STANDALONE, LibraryClasses.common.MM_STANDALONE]
   # Current support of advanced logger in Standalone MM is limited to the platforms
   # that supports it from TFA.
-  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  #
+  # Local workaround: BaseDebugLibSerialPort writes to PL011 @ 0x09040000.
+  # mssp-rust now claims that MMIO range as its ec_uart device-region (T2),
+  # so secure_uart was removed from qemu_virt_stmm_config.dts. Without a
+  # mapped PL011, BaseDebugLibSerialPort would fault on first DEBUG() —
+  # swap to BaseDebugLibNull so stmm runs silently.
+  DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
 
 [BuildOptions]
 !include NetworkPkg/NetworkBuildOptions.dsc.inc

@@ -51,13 +51,14 @@
 		compatible = "arm,ffa-manifest-device-regions";
 
 		/*
-		 * Secure UART region.
+		 * Secure UART region — REMOVED (local workaround).
+		 * The mssp-rust SP now claims this MMIO range via its
+		 * ec_uart device-region for the Thermal EC relay (T2).
+		 * Hafnium rejects overlapping device-region claims across
+		 * SPs, so stmm must yield. stmm's DebugLib is also patched
+		 * to BaseDebugLibNull in QemuArmVirtPkg.dsc to prevent a
+		 * page fault on the now-unmapped PL011 at 0x09040000.
 		 */
-		secure_uart {
-			base-address = <0x0 0x09040000>;
-			pages-count = <0x1>;
-			attributes = <0x3>;
-		};
 
 		/*
 		 * Variable Flash.
